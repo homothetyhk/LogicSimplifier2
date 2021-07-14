@@ -113,11 +113,10 @@ namespace LogicSimplifier2
         public DNF SubstAll(DNF logic)
         {
             DNF subst = new DNF();
-            
+
             foreach (var cc in logic.Clauses)
             {
-                (Waypoint, int)[] waypoints = Waypoints.Where(w => cc.reqs[w.index])
-                    .Select((w, i) => (w, i)).ToArray();
+                Waypoint[] waypoints = Waypoints.Where(w => cc.reqs[w.index]).ToArray();
                 int count = waypoints.Length;
                 if (count == 0)
                 {
@@ -129,26 +128,30 @@ namespace LogicSimplifier2
                 ConjunctiveClause[] statements = new ConjunctiveClause[count];
                 statements[0] = cc;
 
-                foreach (var (w, i) in waypoints)
+                void RecursiveSearch(int depth)
                 {
+                    Waypoint w = waypoints[depth];
                     foreach (var cj in w.absoluteLogic.Clauses)
                     {
-                        if (i + 1 < count)
+                        if (depth + 1 < count)
                         {
-                            statements[i + 1] = statements[i].Substitute(w.index, cj);
+                            statements[depth + 1] = statements[depth].Substitute(w.index, cj);
+                            RecursiveSearch(depth + 1);
                         }
                         else
                         {
-                            ConjunctiveClause cl = statements[i].Substitute(w.index, cj);
+                            ConjunctiveClause cl = statements[depth].Substitute(w.index, cj);
                             if (subst.Clauses.Any(c => cl >= c)) continue;
                             subst.AddAndRemoveSupersets(cl);
                         }
                     }
                 }
-            }
 
+                RecursiveSearch(0);
+            }
             return subst;
         }
+
 
         private bool IsRelative(ConjunctiveClause cc)
         {
