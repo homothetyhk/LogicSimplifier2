@@ -9,11 +9,14 @@ namespace LogicSimplifier2
     public class LogicProcessor
     {
         Dictionary<string, string[]> macros = new();
-        Dictionary<string, bool> settings;
+        Dictionary<string, bool?> settings;
 
-        public LogicProcessor(Dictionary<string, string> macros, Dictionary<string, bool> settings)
+        public LogicProcessor(Dictionary<string, string> macros, Dictionary<string, bool?> settings)
         {
             this.settings = settings;
+            settings["TRUE"] = settings["ANY"] = true;
+            settings["FALSE"] = settings["NONE"] = false;
+
             foreach (var kvp in macros)
             {
                 try
@@ -48,8 +51,9 @@ namespace LogicSimplifier2
 
         public string[][] ApplySettings(string[][] logic)
         {
-            return logic.Where(l => l.All(t => !settings.ContainsKey(t) || settings[t]))
-                .Select(l => l.Where(t => !settings.ContainsKey(t)).ToArray()).ToArray();
+            return logic.Where(l => l.All(t => !settings.ContainsKey(t) || settings[t] != false))
+                .Select(l => l.Where(t => !settings.ContainsKey(t) || settings[t] == null)
+                .ToArray()).ToArray();
         }
 
         public string[][] Distribute(string[] shuntedLogic)

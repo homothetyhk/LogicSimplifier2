@@ -8,7 +8,7 @@ namespace LogicSimplifier2
 {
     public static class Prompts
     {
-        public static Dictionary<string, bool> SelectSettingsPrompt(string[] settings)
+        public static Dictionary<string, bool?> SelectSettingsPrompt(string[] settings)
         {
             Console.WriteLine("Would you like to select settings? [y/n]");
             while (true)
@@ -18,16 +18,33 @@ namespace LogicSimplifier2
                 if (c == "y") break;
             }
 
-            Dictionary<string, bool> settingBools = settings.ToDictionary(s => s, s => false);
+            Dictionary<string, bool?> settingBools = settings
+                .ToDictionary<string, string, bool?>(s => s, s => false);
             void Print()
             {
                 Console.Clear();
                 for (int i = 0; i < settings.Length; i++)
                 {
-                    Console.WriteLine($"[{i}] {settings[i]}: {settingBools[settings[i]]}");
+                    Console.WriteLine($"[{i}] {settings[i]}: {settingBools[settings[i]]?.ToString() ?? "Variable"}");
                 }
-                Console.WriteLine("Enter the number in brackets to toggle the corresponding setting.");
+                Console.WriteLine("Enter the number in brackets to toggle the corresponding setting");
                 Console.WriteLine("Enter a blank line to finish.");
+            }
+
+            void Toggle(string setting)
+            {
+                switch (settingBools[setting])
+                {
+                    case null:
+                        settingBools[setting] = false;
+                        break;
+                    case false:
+                        settingBools[setting] = true;
+                        break;
+                    case true:
+                        settingBools[setting] = null;
+                        break;
+                }
             }
 
             while (true)
@@ -37,7 +54,7 @@ namespace LogicSimplifier2
                 if (s == "") return settingBools;
                 if (int.TryParse(s, out int i) && 0 <= i && i < settings.Length)
                 {
-                    settingBools[settings[i]] ^= true;
+                    Toggle(settings[i]);
                 }
             }
         }
